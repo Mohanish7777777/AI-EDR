@@ -54,8 +54,7 @@ def load_user(user_id):
 genai.configure(api_key="AIzaSyDTGMCstnO007h0o5wxlNzpmT-Ulq_lQWk")
 model = genai.GenerativeModel('gemini-2.0-flash-exp')
 TINES_WEBHOOK_URL = "https://cool-river-6431.tines.com/webhook/e62673882ea8b0e03563ca9b167c769e/63e263e2f06addd487d9f18a606292a5"
-
-
+    
 @app.route('/', methods=['GET', 'POST'])
 def index():
     return "Welcome to the AI-EDR System!"

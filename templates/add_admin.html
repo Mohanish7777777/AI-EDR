@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Add Admin</title>
+    {% include 'navbar.html' %}
     <style>
         body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; }
         .form-group { margin-bottom: 15px; }
@@ -11,6 +12,7 @@
 </head>
 <body>
     <h2>Add New Admin</h2>
+
     <form method="POST">
         <div class="form-group">
             <input type="text" name="username" placeholder="Username" required>

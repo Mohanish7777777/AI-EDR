@@ -4,12 +4,24 @@ body {
     margin: 0;
     padding: 0;
 }
-header {
-    background-color: #333;
+nav {
+    background-color: #4CAF50; /* Updated navbar background color */
     color: white;
     padding: 10px;
     text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Added shadow for depth */
 }
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    display: inline-block;
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+nav a:hover {
+    background-color: #45a049; /* Updated hover color */
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -21,13 +33,31 @@ th, td {
     text-align: left;
 }
 th {
-    background-color: #444;
+    background-color: #4CAF50; /* Updated header background color */
     color: white;
+    padding: 10px; /* Added padding for better spacing */
+}
+td {
+    padding: 10px; /* Added padding for table cells */
 }
 button {
-    background-color: red;
+    padding: 10px 20px;
+    background: #4CAF50;
     color: white;
-    padding: 5px;
     border: none;
-    cursor: pointer;
+    border-radius: 5px; /* Added border radius for rounded corners */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+button:hover {
+    background: #45a049; /* Updated hover color */
+}
+input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc; /* Added border for input fields */
+    border-radius: 4px; /* Added border radius for rounded corners */
+}
+input:focus {
+    border: 2px solid #4CAF50; /* Updated focus border color */
+    outline: none; /* Remove default outline */
 }
