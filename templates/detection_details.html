@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detection Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin-bottom: 30px; }
+        .comments { background: #f9f9f9; padding: 15px; }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    <h2>Detection Details</h2>
+    
+    <div class="section">
+        <h3>Malicious Activity</h3>
+        <p><strong>File Path:</strong> {{ detection.malicious_info.file_path }}</p>
+        <p><strong>Command Line:</strong> {{ detection.malicious_info.command_line }}</p>
+        <p><strong>Priority Level:</strong> {{ detection.malicious_info.priority_level }}</p>
+    </div>
+
+    <div class="section">
+        <h3>AI Solution Steps</h3>
+        <ol>
+            {% for step in detection.solution_steps %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="section">
+        <h3>Admin Review</h3>
+        {% if detection.reviewed %}
+            <div class="comments">
+                <p>{{ detection.admin_comments }}</p>
+                <em>Reviewed by admin</em>
+            </div>
+        {% else %}
+            <form method="POST" action="{{ url_for('review_detection', detection_id=detection._id) }}">
+                <textarea name="comments" rows="4" style="width: 100%" required></textarea>
+                <br>
+                <button type="submit">Submit Review</button>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

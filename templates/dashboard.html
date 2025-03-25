@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f5f5f5; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('add_admin') }}">Add Admin</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    
+    <h2>Recent Detections</h2>
+    <table>
+        <tr>
+            <th>Time</th>
+            <th>Hostname</th>
+            <th>Priority</th>
+            <th>Reviewed</th>
+            <th>Action</th>
+        </tr>
+        {% for detection in detections %}
+        <tr>
+            <td>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ detection.malicious_info.hostname }}</td>
+            <td>{{ detection.malicious_info.priority_level }}</td>
+            <td>{{ "Yes" if detection.reviewed else "No" }}</td>
+            <td><a href="{{ url_for('detection_details', detection_id=detection._id) }}">View</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

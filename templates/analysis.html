@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Malware Analysis Report</title>
+</head>
+<body>
+    <h1>Malware Analysis Report</h1>
+
+    <h2>Malicious Details</h2>
+    <ul>
+        <li><strong>File Path:</strong> {{ malicious.file_path }}</li>
+        <li><strong>Command Line:</strong> {{ malicious.command_line }}</li>
+        <li><strong>Hash:</strong> {{ malicious.hash }}</li>
+        <li><strong>Memory Usage:</strong> {{ malicious.memory_usage }}</li>
+        <li><strong>File Signed:</strong> {{ malicious.file_signed }}</li>
+        <li><strong>Process ID:</strong> {{ malicious.process_id }}</li>
+        <li><strong>Parent Process ID:</strong> {{ malicious.parent_pid }}</li>
+        <li><strong>User Name:</strong> {{ malicious.user_name }}</li>
+        <li><strong>Event Time:</strong> {{ malicious.event_time }}</li>
+        <li><strong>Event ID:</strong> {{ malicious.event_id }}</li>
+        <li><strong>Hostname:</strong> {{ malicious.hostname }}</li>
+        <li><strong>Internal IP:</strong> {{ malicious.int_ip }}</li>
+        <li><strong>External IP:</strong> {{ malicious.ext_ip }}</li>
+        <li><strong>Priority Level:</strong> {{ malicious.priority_level }}</li>
+        <li><strong>Description:</strong> {{ malicious.description }}</li>
+        <li><strong>Tags:</strong> {{ malicious.tags }}</li>
+        <li><strong>False Positives:</strong> {{ malicious.false_positives }}</li>
+        <li><a href="{{ malicious.link }}">LimaCharlie Link</a></li>
+    </ul>
+
+    <h2>Startpoint Details</h2>
+    <ul>
+        <li><strong>Parent File Path:</strong> {{ startpoint.parent_file_path }}</li>
+        <li><strong>Parent Command Line:</strong> {{ startpoint.parent_command_line }}</li>
+        <li><strong>Parent Hash:</strong> {{ startpoint.parent_hash }}</li>
+        <li><strong>Parent PID:</strong> {{ startpoint.parent_pid }}</li>
+        <li><strong>Parent Username:</strong> {{ startpoint.parent_username }}</li>
+    </ul>
+
+    <h2>Solution Steps</h2>
+    <ol>
+        {% for step in solutions %}
+            <li>{{ step }}</li>
+        {% endfor %}
+    </ol>
+</body>
+</html>
