@@ -55,6 +55,63 @@ genai.configure(api_key="AIzaSyDTGMCstnO007h0o5wxlNzpmT-Ulq_lQWk")
 model = genai.GenerativeModel('gemini-2.0-flash-exp')
 TINES_WEBHOOK_URL = "https://cool-river-6431.tines.com/webhook/e62673882ea8b0e03563ca9b167c769e/63e263e2f06addd487d9f18a606292a5"
 
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    return "Welcome to the AI-EDR System!"
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password'].encode('utf-8')
+        
+        user = users_collection.find_one({'username': username})
+        if user and bcrypt.checkpw(password, user['password']):
+            user_obj = User(user)
+            login_user(user_obj)
+            return redirect(url_for('dashboard'))
+        return render_template('login.html', error='Invalid credentials')
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    detections = list(detections_collection.find().sort('timestamp', -1))
+    return render_template('dashboard.html', detections=detections)
+
+@app.route('/detection/<detection_id>')
+@login_required
+def detection_details(detection_id):
+    detection = detections_collection.find_one({'_id': ObjectId(detection_id)})
+    return render_template('detection_details.html', detection=detection)
+
+@app.route('/add_admin', methods=['GET', 'POST'])
+@login_required
+def add_admin():
+    if not current_user.user_data.get('is_admin'):
+        return "Unauthorized", 403
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password'].encode('utf-8')
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        
+        users_collection.insert_one({
+            'username': username,
+            'password': hashed,
+            'is_admin': True
+        })
+        return redirect(url_for('dashboard'))
+    
+    return render_template('add_admin.html')
+
 def analyze_report(report):
     """Analyzes the malicious report and extracts relevant information."""
 
@@ -120,7 +177,7 @@ def trigger_tines_webhook(sid, decision):
     """Triggers the Tines webhook."""
     try:
         data = {
-            "device_id": sid,
+            "sid": sid,
             "decision": decision
         }
         response = requests.post(TINES_WEBHOOK_URL, json=data)
@@ -151,6 +208,20 @@ def analyze():
             return jsonify({'error': str(e)}), 400
     else:
         return render_template('form.html')
+
+# Add route for admin review
+@app.route('/review/<detection_id>', methods=['POST'])
+@login_required
+def review_detection(detection_id):
+    if not current_user.user_data.get('is_admin'):
+        return "Unauthorized", 403
+    
+    comments = request.form['comments']
+    detections_collection.update_one(
+        {'_id': ObjectId(detection_id)},
+        {'$set': {'reviewed': True, 'admin_comments': comments}}
+    )
+    return redirect(url_for('detection_details', detection_id=detection_id))
 
 if __name__ == '__main__':
     app.run(debug=True)
