@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir flask flask-login google-generativeai pymongo bcrypt requests
 
 # Expose the port the app runs on
 EXPOSE 5000
