@@ -221,12 +221,19 @@ def analyze_background(report):
         "admin_comments": "",
         "trigger_sent": False
     }
+    
     result = detections_collection.insert_one(detection_data)
     detection_id = result.inserted_id
 
     # Tines Webhook Trigger
     sid = report.get("detect", {}).get("routing", {}).get("sid", "UNKNOWN_SID")
     priority_level = malicious_info['priority_level'].lower()
+
+    # Check if trigger was already sent
+    existing_detection = detections_collection.find_one({'_id': detection_id})
+    if existing_detection and existing_detection.get("trigger_sent"):
+        print("Trigger already sent for this detection.")
+        return
 
     if priority_level in ['high', 'medium']:
         trigger_sent = trigger_tines_webhook(sid, "YES")
@@ -239,7 +246,8 @@ def analyze_background(report):
             {'_id': detection_id},
             {'$set': {'trigger_sent': True}}
         )
-
+        print(f"Detection {detection_id} updated with trigger status.") 
+        
 # Add route for admin review
 @app.route('/review/<detection_id>', methods=['POST'])
 @login_required
