@@ -12,9 +12,8 @@ RUN pip install --no-cache-dir flask flask-login google-generativeai pymongo bcr
 # Expose the port the app runs on
 EXPOSE 5000
 
-# Set environment variables
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-
-# Run the application
-CMD ["python", "app.py"]
+# Define environment variable
+ ENV FLASK_APP app.py
+ 
+ # Run app.py when the container launches
+ CMD ["flask", "run", "--host=0.0.0.0"]
