@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
-import threading  # Add this line to import the threading module
+import threading
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import google.generativeai as genai
 import os
@@ -114,7 +114,6 @@ def add_admin():
 
 def analyze_report(report):
     """Analyzes the malicious report and extracts relevant information."""
-
     event = report.get("detect", {}).get("event", {})
     routing = report.get("detect", {}).get("routing", {})
     detect_mtd = report.get("detect_mtd", {})
@@ -174,26 +173,32 @@ def generate_solution_steps(report):
         return [f"Error generating solution steps: {e}"]
 
 def trigger_tines_webhook(sid, decision):
-    """Triggers the Tines webhook."""
+    """Triggers the Tines webhook and returns True if successful."""
     try:
         data = {
             "sid": sid,
             "decision": decision
         }
         response = requests.post(TINES_WEBHOOK_URL, json=data)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        response.raise_for_status()
         print(f"Tines webhook triggered successfully: {TINES_WEBHOOK_URL}, with data: {data}")
+        return True
     except requests.exceptions.RequestException as e:
         print(f"Error triggering Tines webhook: {TINES_WEBHOOK_URL}, {e}")
+        return False
 
 @app.route('/analyze', methods=['POST', 'GET'])
 def analyze():
     if request.method == 'POST':
         try:
             report = request.get_json()
+            # Check if this detection has already been processed
+            event_id = report.get("detect", {}).get("routing", {}).get("event_id")
+            if event_id and detections_collection.count_documents({"raw_report.detect.routing.event_id": event_id}) > 0:
+                return jsonify({'message': 'Detection already processed'}), 200
+            
             # Start the analysis in a background thread
             threading.Thread(target=analyze_background, args=(report,)).start()
-
             return jsonify({'message': 'Analysis is being processed in the background.'}), 202
         except Exception as e:
             return jsonify({'error': str(e)}), 400
@@ -213,19 +218,27 @@ def analyze_background(report):
         "solution_steps": solution_steps,
         "raw_report": report,
         "reviewed": False,
-        "admin_comments": ""
+        "admin_comments": "",
+        "trigger_sent": False
     }
-    detections_collection.insert_one(detection_data)
+    result = detections_collection.insert_one(detection_data)
+    detection_id = result.inserted_id
 
     # Tines Webhook Trigger
-    sid = report.get("routing", {}).get("sid", "UNKNOWN_SID")
+    sid = report.get("detect", {}).get("routing", {}).get("sid", "UNKNOWN_SID")
     priority_level = malicious_info['priority_level'].lower()
 
     if priority_level in ['high', 'medium']:
-        trigger_tines_webhook(sid, "YES")
+        trigger_sent = trigger_tines_webhook(sid, "YES")
     else:
-        trigger_tines_webhook(sid, "NO")
+        trigger_sent = trigger_tines_webhook(sid, "NO")
 
+    # Update the detection with trigger status if sent successfully
+    if trigger_sent:
+        detections_collection.update_one(
+            {'_id': detection_id},
+            {'$set': {'trigger_sent': True}}
+        )
 
 # Add route for admin review
 @app.route('/review/<detection_id>', methods=['POST'])
