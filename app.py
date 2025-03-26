@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
+import threading  # Add this line to import the threading module
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import google.generativeai as genai
 import os
@@ -190,38 +191,41 @@ def analyze():
     if request.method == 'POST':
         try:
             report = request.get_json()
-            malicious_info, startpoint_info = analyze_report(report)
-            solution_steps = generate_solution_steps(report)
+            # Start the analysis in a background thread
+            threading.Thread(target=analyze_background, args=(report,)).start()
 
-            # Store detection in MongoDB
-            detection_data = {
-                "timestamp": datetime.now(),
-                "malicious_info": malicious_info,
-                "startpoint_info": startpoint_info,
-                "solution_steps": solution_steps,
-                "raw_report": report,
-                "reviewed": False,
-                "admin_comments": ""
-            }
-            detections_collection.insert_one(detection_data)
-
-            # Tines Webhook Trigger
-            sid = report.get("routing", {}).get("sid", "UNKNOWN_SID")
-            priority_level = malicious_info['priority_level'].lower()
-
-            if priority_level in ['high', 'medium']:
-                trigger_tines_webhook(sid, "YES")
-            else:
-                trigger_tines_webhook(sid, "NO")
-
-            return render_template('analysis.html', 
-                                malicious=malicious_info,
-                                startpoint=startpoint_info,
-                                solutions=solution_steps)
+            return jsonify({'message': 'Analysis is being processed in the background.'}), 202
         except Exception as e:
             return jsonify({'error': str(e)}), 400
     else:
         return render_template('form.html')
+
+def analyze_background(report):
+    """Function to handle the analysis in the background."""
+    malicious_info, startpoint_info = analyze_report(report)
+    solution_steps = generate_solution_steps(report)
+
+    # Store detection in MongoDB
+    detection_data = {
+        "timestamp": datetime.now(),
+        "malicious_info": malicious_info,
+        "startpoint_info": startpoint_info,
+        "solution_steps": solution_steps,
+        "raw_report": report,
+        "reviewed": False,
+        "admin_comments": ""
+    }
+    detections_collection.insert_one(detection_data)
+
+    # Tines Webhook Trigger
+    sid = report.get("routing", {}).get("sid", "UNKNOWN_SID")
+    priority_level = malicious_info['priority_level'].lower()
+
+    if priority_level in ['high', 'medium']:
+        trigger_tines_webhook(sid, "YES")
+    else:
+        trigger_tines_webhook(sid, "NO")
+
 
 # Add route for admin review
 @app.route('/review/<detection_id>', methods=['POST'])
